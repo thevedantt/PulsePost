@@ -142,6 +142,20 @@ REST_FRAMEWORK = {
 }
 
 # CORS Configuration (Development only)
-# WARNING: These settings allow all origins. Restrict this in production!
+# When using credentials: 'include' on the frontend, the browser rejects
+# Access-Control-Allow-Origin: * — we must whitelist specific origins.
+# CORS_ALLOW_CREDENTIALS is required so session cookies are sent cross-origin.
 if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
+    CORS_ALLOWED_ORIGINS = [
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+    ]
+    CORS_ALLOW_CREDENTIALS = True
+
+# CSRF Configuration
+# Trusted origins that Django will accept CSRF tokens from.
+# Required when frontend and backend are on different ports.
+CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]

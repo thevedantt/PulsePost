@@ -16,6 +16,7 @@ def api_root(request):
         "endpoints": {
             "tweets": "/api/tweets/",
             "auth": "/api/auth/",
+            "profile": "/api/profile/",
             "admin": "/admin/"
         }
     })
@@ -29,6 +30,9 @@ urlpatterns = [
 
     # API endpoints for Tweets
     path('api/tweets/', include('tweets.urls')),
+
+    # Profile endpoints
+    path('api/profile/', include('tweets.profile_urls')),
 ]
 
 # Serve media files in development
