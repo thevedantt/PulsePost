@@ -1,7 +1,22 @@
 from django.contrib.auth import authenticate, login, logout
+from django.views.decorators.csrf import ensure_csrf_cookie
+from django.utils.decorators import method_decorator
 from rest_framework import status, views, permissions
 from rest_framework.response import Response
 from .auth_serializers import RegisterSerializer, LoginSerializer
+
+class GetCSRFTokenView(views.APIView):
+    """
+    Endpoint to set the CSRF cookie on the frontend.
+    The frontend must call this before making any POST/PUT/DELETE requests.
+    The @ensure_csrf_cookie decorator forces Django to send the csrftoken cookie.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    @method_decorator(ensure_csrf_cookie)
+    def get(self, request):
+        return Response({"message": "CSRF cookie set"})
+
 
 class RegisterView(views.APIView):
     """
@@ -22,9 +37,12 @@ class RegisterView(views.APIView):
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+
+@method_decorator(ensure_csrf_cookie, name='dispatch')
 class LoginView(views.APIView):
     """
     View to authenticate user and create a session.
+    Also ensures the CSRF cookie is set on login response.
     """
     permission_classes = [permissions.AllowAny]
 
@@ -46,6 +64,7 @@ class LoginView(views.APIView):
                 })
             return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 class LogoutView(views.APIView):
     """
