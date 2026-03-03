@@ -33,7 +33,7 @@ export default function Header() {
         <header className="sticky top-0 z-50 border-b border-border bg-card/80 backdrop-blur-md">
             <div className="mx-auto flex h-16 max-w-2xl items-center justify-between px-4">
                 {/* Logo */}
-                <Link href="/feed" className="flex items-center gap-2">
+                <Link href="/" className="flex items-center gap-2">
                     <span className="text-2xl font-bold tracking-tight text-primary">
                         Pulse<span className="text-accent">Post</span>
                     </span>

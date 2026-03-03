@@ -21,6 +21,8 @@ export const metadata: Metadata = {
   description: "A lightweight Twitter-style microblogging platform built with Next.js and Django.",
 };
 
+import AppLayoutWrapper from "@/components/AppLayoutWrapper";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -33,8 +35,7 @@ export default function RootLayout({
       >
         <ThemeProvider>
           <AuthProvider>
-            <Header />
-            <main className="mx-auto max-w-2xl px-4 py-6">{children}</main>
+            <AppLayoutWrapper>{children}</AppLayoutWrapper>
             <Toaster richColors position="bottom-right" />
           </AuthProvider>
         </ThemeProvider>

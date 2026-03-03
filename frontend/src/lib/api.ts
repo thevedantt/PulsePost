@@ -1,11 +1,16 @@
-// API base URL from environment
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+// Provide correct network loopback routing depending on the environment
+const isServer = typeof window === "undefined";
+const API_URL = isServer
+    ? (process.env.NEXT_PUBLIC_INTERNAL_API_URL || "http://127.0.0.1:8000") // Node.js IPv4 fallback
+    : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");         // Browser SameSite capability
 
 /**
- * Reads the CSRF token from the browser cookie.
- * Django sets a cookie named 'csrftoken' on session-authenticated requests.
+ * Reads the CSRF token from the browser cookie or memory.
  */
+let memoryCsrfToken = "";
+
 function getCSRFToken(): string {
+    if (memoryCsrfToken) return memoryCsrfToken;
     if (typeof document === "undefined") return "";
     const match = document.cookie.match(/csrftoken=([^;]+)/);
     return match ? match[1] : "";
@@ -13,19 +18,21 @@ function getCSRFToken(): string {
 
 /**
  * Ensures the CSRF cookie is set by calling the backend CSRF endpoint.
- * This is needed because Django won't set the cookie until a view
- * decorated with @ensure_csrf_cookie is accessed.
  */
 let csrfReady = false;
 async function ensureCSRFCookie(): Promise<void> {
     if (csrfReady && getCSRFToken()) return;
     try {
-        await fetch(`${API_URL}/api/auth/csrf/`, {
+        const res = await fetch(`${API_URL}/api/auth/csrf/`, {
             credentials: "include",
         });
+        const data = await res.json();
+        if (data && data.csrfToken) {
+            memoryCsrfToken = data.csrfToken;
+        }
         csrfReady = true;
     } catch {
-        // Silently fail — the POST will fail with 403 and we handle that
+        // Silently fail
     }
 }
 
@@ -141,10 +148,14 @@ export async function loginUser(
     username: string,
     password: string
 ): Promise<AuthResponse> {
-    return api<AuthResponse>("/api/auth/login/", {
+    const data = await api<AuthResponse & { csrfToken?: string }>("/api/auth/login/", {
         method: "POST",
         body: { username, password },
     });
+    if (data.csrfToken) {
+        memoryCsrfToken = data.csrfToken;
+    }
+    return data;
 }
 
 export async function logoutUser(): Promise<{ message: string }> {

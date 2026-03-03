@@ -1,9 +1,10 @@
-from django.contrib.auth import authenticate, login, logout
-from django.views.decorators.csrf import ensure_csrf_cookie
-from django.utils.decorators import method_decorator
-from rest_framework import status, views, permissions
-from rest_framework.response import Response
-from .auth_serializers import RegisterSerializer, LoginSerializer
+from django.contrib.auth import authenticate, login, logout  # type: ignore
+from django.views.decorators.csrf import ensure_csrf_cookie  # type: ignore
+from django.utils.decorators import method_decorator  # type: ignore
+from django.middleware.csrf import get_token  # type: ignore
+from rest_framework import status, views, permissions  # type: ignore
+from rest_framework.response import Response  # type: ignore
+from .auth_serializers import RegisterSerializer, LoginSerializer  # type: ignore
 
 class GetCSRFTokenView(views.APIView):
     """
@@ -15,7 +16,10 @@ class GetCSRFTokenView(views.APIView):
 
     @method_decorator(ensure_csrf_cookie)
     def get(self, request):
-        return Response({"message": "CSRF cookie set"})
+        return Response({
+            "message": "CSRF cookie set",
+            "csrfToken": get_token(request)
+        })
 
 
 class RegisterView(views.APIView):
@@ -57,6 +61,7 @@ class LoginView(views.APIView):
                 login(request, user)
                 return Response({
                     "message": "Login successful",
+                    "csrfToken": get_token(request),
                     "user": {
                         "id": user.id,
                         "username": user.username
